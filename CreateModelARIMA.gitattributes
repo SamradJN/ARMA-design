@@ -1,0 +1,94 @@
+function model=CreateModelARIMA()
+% the values of parameters
+design=[1	1
+1	2
+1	3
+1	4
+1   5
+1   6
+1   7];
+des=design(7,:);
+%
+Aa=0.00;
+Bb=[-0.75,-0.50,-0.25,0.00,0.25,0.50,0.75];
+%%%%%%%%%%% ARL Parameters of ARMA Data %%%%%%%%%%%%%%%%%%%%
+vv=Aa(des(1)); 
+uu=Bb(des(2));
+%
+% Mdl = arima(1,0,0);
+%
+%%%%%%%%%%% Data Size %%%%%%%%%%%%%%%%%%%%
+%
+itr=500;  % number of columns 
+M=1000;   % Length of Data generated in each column
+%
+%%%%%%%%%%% Process Parameters %%%%%%%%%%%%%%%%%%%%%%%%
+%
+u0=10;   % Process mean  
+%
+Sigma=0.1;
+Sigma2_a=Sigma^2; % Error Variance 
+Sigma2_x=Sigma2_a*(1-2*uu*vv+vv^2)/(1-uu^2); %ARMA(1,1) Process Variance
+% Sigma2_a=Sigma2_x*(1-uu^2)/(1-2*uu*vv+vv^2);  % Variance of errors
+%
+%%%%%%%%%%%%%%%%% Shift Size %%%%%%%%%%%%%%%%%%%%
+%
+delta=1.25;% A [0.5, 2]
+u1=u0+delta*Sigma; % shifted mean
+%
+%%%%%%% Parameters of Duncan Model %%%%%%%%%%%%%%
+%Cost parameters (nominal value)
+a1 = 0.5;  % (f) fixed cost per sample
+a2 = 0.1;  % (v) cost per unit sampled
+a3 = 25;   % (W) average cost to detect an assignable cause
+a4 = 50;   % (T or Y) cost of verifying a false alarm
+a5 = 100;  % (M) hourly loss due to poor quality
+%a1=1; a2=0.1; a4=25; a3=12.5; a5=20; 
+%
+% Process parameters (nominal value)
+Lda = .01;
+gt=0.05;  %time required to sample, inspect, and interpret the results
+Dt=2;     %time to discover and repair the assignable cause
+%
+%%%%%%%%%%%% R.H.S. of Constraints %%%%%%%%%%%
+%
+upper=0.005;   % for Alfa
+lower=0.98; % for Pow
+upperATS1=4;
+%
+landa1=100;
+landa2=100;
+landa3=100;
+landa4=100;
+%
+%%%%%%%%%%%%%%%%% Model assignment %%%%%%%%%%%%%%%%%%%%
+model.uu=uu;
+model.vv=vv;
+model.itr=itr;
+model.M=M;
+model.u0=u0;
+model.u1=u1; 
+model.Sigma2_a=Sigma2_a;
+model.Sigma=Sigma;
+model.Sigma2_x=Sigma2_x;
+model.delta= delta;
+%
+model.a1=a1;
+model.a2=a2;
+model.a3=a3;
+model.a4=a4;
+model.a5=a5;
+model.Lda=Lda;
+model.gt=gt;
+model.Dt=Dt;
+%
+model.upper=upper;
+model.lower=lower;
+model.upperATS1=upperATS1;
+%
+model.landa1=landa1;
+model.landa2=landa2;
+model.landa3=landa3;
+model.landa4=landa4;
+%
+end

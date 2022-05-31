@@ -1,0 +1,121 @@
+function[EHC,sol]=ARIMAFunc(z,model)
+%ARIMA monitoring using Yin 10 Scenarios with delayed monitoring
+ global NFE;
+    if isempty(NFE)
+        NFE=0;
+    end
+    NFE=NFE+1;
+%%%decision variables assignment
+n=z(1);    % Sample size
+h=z(2);    % sampling intervals
+L=z(3);    % control chart limit
+tt=z(4);   %%% MA coefficient value in ARMA
+fi=z(5);   %%% AR coefficient value in ARMA
+%
+%%% Parameters assignment
+uu=model.uu;
+vv=model.vv;
+itr=model.itr;
+M=model.M;
+u0=model.u0;
+u1=model.u1; 
+Sigma2_a=model.Sigma2_a; % Error Variance 
+Sigma=model.Sigma;
+Sigma2_x=model.Sigma2_x; % AR(1) Process Variance
+delta=model.delta;
+%
+a1=model.a1;
+a2=model.a2;
+a3=model.a3;
+a4=model.a4;
+a5=model.a5;
+Lda=model.Lda;
+gt=model.gt;
+Dt=model.Dt;
+%
+lower=model.lower;
+upper=model.upper;
+upperATS1=model.upperATS1;
+%
+landa1=model.landa1;
+landa2=model.landa2;
+landa3=model.landa3;
+landa4=model.landa4;
+%
+%%%%%%%%%%%%%%%%%%%%%%% ARL calculations %%%%%%%%%%%%%%%%%%%%%
+%
+X0=u0; Z0=u0;
+tt0=1+tt-fi; Bt=tt/tt0;
+ro_x=uu-vv*Sigma2_a./Sigma2_x; aa=fi*tt0-tt;
+%
+[Data0]=Org_ARIMA2(M,itr,uu,vv,u0,Sigma2_x);  %Xij & estimated sigma2_x
+Data1=Org_ARIMA2(M,itr,uu,vv,u1,Sigma2_x);    %X'ij
+%
+% Sigma2_z=(1+2*(tt-fi)*(1+tt)/(1+fi))*Sigma2_x;  %variance of the monitoring statistics based on theoritical Sigma
+% Sigma2_z=(1+2*(tt-fi)*(1+tt)/(1+fi))*Sigmah2_x;  %variance of the monitoring statistics based on estimated Sigma
+Sigma2_z=( tt0^2 + (aa^2)/(1-fi^2) + 2*(tt0*aa + fi*(aa^2)/(1-fi^2)).*ro_x./(1-fi*uu) )*(Sigma2_x/n);
+%
+UCL= u0 + L*(Sigma2_z.^0.5); %based on theoritical mean
+LCL= u0 - L*(Sigma2_z.^0.5);
+%
+[ Zt0 ] = Sample_ARIMA( tt0,Bt,fi,Data0,X0,Z0 ); [ Zt1 ] = Sample_ARIMA( tt0,Bt,fi,Data1,u1,Z0 );
+%
+[ ARL0,ARL1 ] = AS( Zt0,Zt1,UCL,LCL);
+%
+ATS0=ARL0*h;
+ATS1=ARL1*h;
+%
+%%%%%%%%%%%%%%%%%%%%%%% Error Calculations %%%%%%%%%%%%%%%%%%%%%
+Alfa=1/ARL0;
+Beta=1-(1/ARL1);
+Pow=1-Beta;
+%
+    %% Mohasebe jarime 
+violation1=max(0,(Alfa/upper)-1);
+% violation2=max(0,1-(Pow/lower)); 
+violation3=max(0,(ATS1/upperATS1)-1);
+violation4=max(0,((n*gt)/h)-1);
+%
+% violation1=max(0,(Alfa-upper)); 
+% violation2=max(0,(lower-Pow));
+% violation3=max(0,(ATS1-upperATS1)); 
+% violation4=max(0,(n*gt-h));
+%
+% violation1=0; 
+violation2=0;
+% violation3=0;
+% violation4=0;
+%
+%%%%%%%%%%%%%%%% Cycle cost & time Calculations %%%%%%%%%%%%%%%%%%
+[ ETC0, EHC0, TD ] = Duncan( n,h,a1,a2,a3,a4,a5,gt,Dt,Lda,Alfa,Pow);
+%
+%%%%%%%%%%%%%%%% Objective Function Calculation %%%%%%%%%%%%%%%%%%
+% PETC=ETC0+ContIO*EIOTS; %Pure total cost function
+%
+% Cvl=[1 1 1 1];
+% Cvl=[1 1.25 0.75 0.25];
+% Cvl=[24 12 1 1];
+% EHC=EHC0*(1+Cvl(1)*violation1+Cvl(2)*violation2+Cvl(3)*violation3+Cvl(4)*violation4); %Penalized objective function
+%
+EHC=EHC0+landa1*violation1+landa2*violation2+landa3*violation3++landa4*violation4; %Penalized objective function
+%
+sol.ETC0=ETC0;
+sol.EHC0=EHC0;
+sol.EHC=EHC; %Penalized EHC0
+sol.TD=TD;
+sol.z=z;
+sol.ATS0=ATS0;
+sol.ATS1=ATS1;
+sol.ARL0=ARL0;
+sol.ARL1=ARL1;
+sol.Alfa=Alfa;
+sol.Beta=Beta;
+sol.Pow=Pow;
+sol.UCL=UCL;
+sol.LCL=LCL;
+sol.violation1=violation1;
+sol.violation2=violation2;
+sol.violation3=violation3;
+sol.violation4=violation4;
+sol.IsFeasible=((violation1==0)&(violation2==0)&(violation3==0)&(violation4==0));
+end

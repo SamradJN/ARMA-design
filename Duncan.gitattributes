@@ -1,0 +1,25 @@
+function [ ETC0, EHC0, TD ] = Duncan( n,h,a1,a2,a3,a4,a5,g,D,Lda,Alfa,Pow)
+%Function for Duncan Model for Acceptance Chart
+%%%%%%%%%%%% inputs %%%%%%%%%%%%
+%n:     sample size
+%h:     hourse between samples
+%k:     number of st.devs from control limits to center line
+%u0:    mean of process
+%sigma: St. Dev. of process
+%%%%%%%%%%%%% Duncan parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Lda = 0.01;
+%a1=1; a2=0.1; a4=25; a3=12.5; a5=20; 
+%a1=0.5; a2=0.1; a4=50; a3=25; a5=100; 
+%g=0.05; 
+%D=2;
+%
+%%%%%%%% Duncan Function %%%%%%%%%%%%%%%%%%
+A=Alfa/((exp(h*Lda))-1);
+To= (1-((1+(Lda*h))*(exp(-Lda*h))))/(Lda*(1-exp(-Lda*h)));
+B=(h/Pow)-To+(g*n)+D;
+Tm = 1/Lda;
+TD=Tm+B; % expected length of a cycle
+ETC0=((a1+(a2*n))*TD/h) + a3 + a4*A + a5*B; % expected total cost of a cycle
+% EHC0= (Lda*((a5*B)+(a4*A)+a3)/(1+(Lda*B)))+((a1+(a2*n))/h); % expected cost per hour
+EHC0 = ETC0/TD;    % expected cost per hour
+end

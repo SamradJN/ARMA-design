@@ -1,0 +1,37 @@
+function [ ARL0,ARL1,A0,A1 ] = AS( Data0,Data1,UCL,LCL)
+%   ARMA Simulation (AS)_procedure 
+%   Economic statistical design of ARMA control chart through a Modified Fitnessbased Self-Adaptive Differential Evolution 2016
+%   Data : sampled data from Sample_ARIMA code
+%   UCL & LCL
+%%%%%%%%%%% 
+itr=size(Data0,2); % j=1,...,s Scenarios
+M=size(Data0,1);   % i=1,...,M Measurements
+%%%%%%%%%%%  
+arl0=zeros(1,itr);
+  for j=1:itr
+      arl0(1,j)=1;
+       for i=1:M
+%            if LCL(1,j) <= Data0(i,j) && Data0(i,j) <= UCL(1,j) %when using estimations for control limits
+           if LCL <= Data0(i,j) && Data0(i,j) <= UCL %when using theoritical values for control limits
+              arl0(1,j)=arl0(1,j)+1;
+           else; break
+           end
+       end
+  end
+A0(1,:)=arl0;
+ARL0=mean(arl0,2);
+%%%%%%%%%% 
+arl1=zeros(1,itr);
+  for j=1:itr
+      arl1(1,j)=1;
+       for i=1:M
+%            if LCL(1,j) <= Data1(i,j) && Data1(i,j) <= UCL(1,j) %when using estimations for control limits
+           if LCL <= Data1(i,j) && Data1(i,j) <= UCL %when using theoritical values for control limits
+              arl1(1,j)=arl1(1,j)+1;
+           else; break
+           end
+       end
+  end
+A1(1,:)=arl1;
+ARL1=mean(arl1,2);
+end

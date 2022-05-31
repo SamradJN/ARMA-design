@@ -1,0 +1,18 @@
+function [ Zt ] = Sample_ARIMA( tt0,Bt,fi,Data,X0,Z0 )
+% Sample data monitored in the operation of ARIMA control chart 
+%   tt0: 1+Teta-fi
+%   Bt: Teta/Teta0
+%   fi: 
+%   Data: Pre-sampled data from process. use Data0 if mean is in-control and use Data1 if mean is shifted
+%   X0:
+%   Z0: 
+itr=size(Data,2); % j=1,...,s Scenarios
+M=size(Data,1);   % i=1,...,M Measurements
+Zt=zeros(M,itr);
+ for j=1:itr
+     Zt(1,j)=tt0*(Data(1,j)-Bt*X0)+fi*Z0;
+       for i=2:M
+           Zt(i,j)=tt0*(Data(i,j)-Bt*Data(i-1,j))+fi*Zt(i-1,j);
+       end
+ end
+end
