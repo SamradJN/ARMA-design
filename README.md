@@ -1,1 +1,1 @@
-# ARL-IC-OOC
+# Model for Designing ARMA chart
