@@ -1,0 +1,18 @@
+function [ ARL,SDARL ] = AS( Data,UCL)
+itr=size(Data,2); % j=1,...,s Scenarios
+M=size(Data,1);   % i=1,...,M Measurements
+%%%%%%%%%%%  
+arl=zeros(1,itr);
+  for j=1:itr
+      arl(1,j)=1;
+       for i=1:M
+           if Data(i,j) <= UCL % && Data(i,j) >= LCL
+              arl(1,j)=arl(1,j)+1;
+           else; break
+           end
+       end
+  end
+A(1,:)=arl;
+ARL=mean(arl,2);
+SDARL=std(arl,0,2);
+end
